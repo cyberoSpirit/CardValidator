@@ -78,7 +78,7 @@ namespace CardValidator
             StringBuilder incNumber = new StringBuilder(IncrementNumber(number));
             incNumber[incNumber.Length - 1] = '0';
             int luhnSum = GetLuhnSumOfDigits(incNumber.ToString());
-            int num = (luhnSum / 10 == 0) ? 0 : 10 - luhnSum % 10;
+            int num = (luhnSum % 10 == 0) ? 0 : 10 - luhnSum % 10;
             incNumber[incNumber.Length - 1] = Convert.ToChar('0' + num);
             return incNumber.ToString();
         }
@@ -93,7 +93,7 @@ namespace CardValidator
             while (sum > 9 && i > 0)
             {
                 array[i] = sum - 10;
-                sum = array[i + 1] + 1;
+                sum = array[i - 1] + 1;
                 i--;
             }
 
@@ -101,7 +101,7 @@ namespace CardValidator
 
             var incrementedNumber = array.Aggregate(string.Empty, (s, v) => s + v.ToString());
 
-            return (sum > 10 && i == 0) ? "1" + incrementedNumber : incrementedNumber;
+            return (sum >= 10 && i == 0) ? "1" + incrementedNumber : incrementedNumber;
         }
 
         static int GetLuhnSumOfDigits(string number)
@@ -121,7 +121,7 @@ namespace CardValidator
                 while (buf > 0)
                 {
                     sum += buf % 10;
-                    buf = buf / 10;
+                    buf /= 10;
                 }
 
                 buf = sum;
