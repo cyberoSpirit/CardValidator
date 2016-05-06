@@ -33,34 +33,55 @@ namespace CardValidator
             Unknown
         }
 
-        static Vendor GetCreditCardVendor(string number)
+        static string GetCreditCardVendor(string number)
+        {
+            switch (GetVendor(number))
+            {
+                case Vendor.AmericanExpress: return "American Express";
+                case Vendor.Maestro: return "Maestro";
+                case Vendor.MasterCard: return "MasterCard";
+                case Vendor.Visa: return "VISA";
+                case Vendor.Jcb: return "JCB";
+                default: return "Unknown";
+            }
+        }
+
+        static Vendor GetVendor(string number)
         {
             int numberConverted = Convert.ToInt32(number.Substring(0, 4));
+            int numberLength = number.Length;
 
-            if (numberConverted >= VisaNumberLow & numberConverted <= VisaNumberHigh)
+            if (!IsCreditCardNumberValid(number)) return Vendor.Unknown;
+
+            if ((numberConverted >= VisaNumberLow && numberConverted <= VisaNumberHigh) &&
+                (numberLength == 13 || numberLength == 16 || numberLength == 19))
             {
                 return Vendor.Visa;
             }
 
-            else if ((numberConverted >= AExpressNumberLow1 & numberConverted <= AExpressNumberHigh1) ||
-                (numberConverted >= AExpressNumberLow2 & numberConverted <= AExpressNumberHigh2))
+            else if (((numberConverted >= AExpressNumberLow1 && numberConverted <= AExpressNumberHigh1) ||
+                (numberConverted >= AExpressNumberLow2 & numberConverted <= AExpressNumberHigh2)) &&
+                (numberLength == 15))
             {
                 return Vendor.AmericanExpress;
             }
 
-            else if ((numberConverted >= MaestroNumberLow1 & numberConverted <= MaestroNumberHigh1) ||
-                (numberConverted >= MaestroNumberLow2 & numberConverted <= MaestroNumberHigh2))
+            else if (((numberConverted >= MaestroNumberLow1 && numberConverted <= MaestroNumberHigh1) ||
+                (numberConverted >= MaestroNumberLow2 && numberConverted <= MaestroNumberHigh2)) &&
+                (numberLength >=12 && numberLength <= 19))
             {
                 return Vendor.Maestro;
             }
 
-            else if ((numberConverted >= MCardNumberLow1 & numberConverted <= MCardNumberHigh1) ||
-                (numberConverted >= MCardNumberLow2 & numberConverted <= MCardNumberHigh2))
+            else if (((numberConverted >= MCardNumberLow1 && numberConverted <= MCardNumberHigh1) ||
+                (numberConverted >= MCardNumberLow2 & numberConverted <= MCardNumberHigh2)) &&
+                (numberLength == 16))
             {
                 return Vendor.MasterCard;
             }
 
-            else if (numberConverted >= JcbNumberLow & numberConverted <= JcbNumberHigh)
+            else if ((numberConverted >= JcbNumberLow && numberConverted <= JcbNumberHigh) &&
+                (numberLength == 16))
             {
                 return Vendor.Jcb;
             }
@@ -149,9 +170,7 @@ namespace CardValidator
                 }
             }
 
-
-
-            Console.WriteLine(GetCreditCardVendor(clinedNumber).ToString());
+            Console.WriteLine(ConvertVendorToString(GetCreditCardVendor(clinedNumber)));
 
             string isNumberValid = IsCreditCardNumberValid(clinedNumber) ? "valid" : "not valid";
             Console.WriteLine("Card number is " + isNumberValid);
