@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CardValidator
 {
-    class Program
+    public class CreditCardUtility
     {
         public const int VisaNumberLow = 4000;
         public const int VisaNumberHigh = 4999;
@@ -33,9 +33,9 @@ namespace CardValidator
             Unknown
         }
 
-        static string GetCreditCardVendor(string number)
+        public static string GetCreditCardVendor(string number)
         {
-            switch (GetVendor(number))
+            switch (GetVendor(CleanString(number)))
             {
                 case Vendor.AmericanExpress: return "American Express";
                 case Vendor.Maestro: return "Maestro";
@@ -46,7 +46,22 @@ namespace CardValidator
             }
         }
 
-        static Vendor GetVendor(string number)
+        public static bool IsCreditCardNumberValid(string number)
+        {
+            return GetLuhnSumOfDigits(CleanString(number)) % 10 == 0;
+        }
+
+        public static string GenerateNextCreditCardNumber(string number)
+        {
+            StringBuilder incNumber = new StringBuilder(IncrementNumber(CleanString(number)));
+            incNumber[incNumber.Length - 1] = '0';
+            int luhnSum = GetLuhnSumOfDigits(incNumber.ToString());
+            int num = (luhnSum % 10 == 0) ? 0 : 10 - luhnSum % 10;
+            incNumber[incNumber.Length - 1] = Convert.ToChar('0' + num);
+            return incNumber.ToString();
+        }
+
+        private static Vendor GetVendor(string number)
         {
             int numberConverted = Convert.ToInt32(number.Substring(0, 4));
             int numberLength = number.Length;
@@ -68,7 +83,7 @@ namespace CardValidator
 
             else if (((numberConverted >= MaestroNumberLow1 && numberConverted <= MaestroNumberHigh1) ||
                 (numberConverted >= MaestroNumberLow2 && numberConverted <= MaestroNumberHigh2)) &&
-                (numberLength >=12 && numberLength <= 19))
+                (numberLength >= 12 && numberLength <= 19))
             {
                 return Vendor.Maestro;
             }
@@ -89,22 +104,7 @@ namespace CardValidator
             return Vendor.Unknown;
         }
 
-        static bool IsCreditCardNumberValid(string number)
-        {
-            return GetLuhnSumOfDigits(number) % 10 == 0;
-        }
-
-        static string GenerateNextCreditCardNumber(string number)
-        {
-            StringBuilder incNumber = new StringBuilder(IncrementNumber(number));
-            incNumber[incNumber.Length - 1] = '0';
-            int luhnSum = GetLuhnSumOfDigits(incNumber.ToString());
-            int num = (luhnSum % 10 == 0) ? 0 : 10 - luhnSum % 10;
-            incNumber[incNumber.Length - 1] = Convert.ToChar('0' + num);
-            return incNumber.ToString();
-        }
-
-        static string IncrementNumber(string number)
+        private static string IncrementNumber(string number)
         {
             var array = number.Select(v => Convert.ToInt32(v) - '0').ToArray();
             int sum = array[array.Length - 2] + 1;
@@ -125,14 +125,14 @@ namespace CardValidator
             return (sum >= 10 && i == 0) ? "1" + incrementedNumber : incrementedNumber;
         }
 
-        static int GetLuhnSumOfDigits(string number)
+        private static int GetLuhnSumOfDigits(string number)
         {
             return number.Reverse().
                 Select((v, i) => new { value = Convert.ToInt32(v) - '0', index = i }).
                  Sum(g => (g.index % 2 == 0) ? g.value : GetSumOfDigits(g.value * 2));
         }
 
-        static int GetSumOfDigits(int number)
+        private static int GetSumOfDigits(int number)
         {
             int sum = 0;
             int buf = number;
@@ -150,6 +150,11 @@ namespace CardValidator
             while (buf > 9);
 
             return sum;
+        }
+
+        private static string CleanString(string value)
+        {
+            return value.Replace(" ", "");
         }
 
         static void Main(string[] args)
