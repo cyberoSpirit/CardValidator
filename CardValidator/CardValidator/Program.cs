@@ -170,7 +170,7 @@ namespace CardValidator
                 }
             }
 
-            Console.WriteLine(ConvertVendorToString(GetCreditCardVendor(clinedNumber)));
+            Console.WriteLine(GetCreditCardVendor(clinedNumber));
 
             string isNumberValid = IsCreditCardNumberValid(clinedNumber) ? "valid" : "not valid";
             Console.WriteLine("Card number is " + isNumberValid);
