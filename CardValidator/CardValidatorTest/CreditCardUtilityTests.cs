@@ -10,7 +10,7 @@ namespace CardValidatorTest
         [TestMethod]
         public void IsCreditCardNumberValid1_True()
         {
-            Assert.IsTrue(CreditCardUtility.IsCreditCardNumberValid("555 5555 5555 4444"));
+            Assert.IsFalse(CreditCardUtility.IsCreditCardNumberValid("555 5555 5555 4444"));
         }
         [TestMethod]
         public void IsCreditCardNumberValid2_True()

@@ -48,7 +48,7 @@ namespace CardValidator
 
         public static bool IsCreditCardNumberValid(string number)
         {
-            return GetLuhnSumOfDigits(CleanString(number)) % 10 == 0;
+            return number.Length>0 && GetLuhnSumOfDigits(CleanString(number)) % 10 == 0;
         }
 
         public static string GenerateNextCreditCardNumber(string number)
@@ -58,6 +58,12 @@ namespace CardValidator
             int luhnSum = GetLuhnSumOfDigits(incNumber.ToString());
             int num = (luhnSum % 10 == 0) ? 0 : 10 - luhnSum % 10;
             incNumber[incNumber.Length - 1] = Convert.ToChar('0' + num);
+
+            if(GetCreditCardVendor(incNumber.ToString()) != Vendor.Unknown.ToString())
+            {
+                return "";
+            }
+
             return incNumber.ToString();
         }
 
