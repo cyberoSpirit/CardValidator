@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 
@@ -35,6 +35,11 @@ namespace CardValidator
 
         public static string GetCreditCardVendor(string number)
         {
+            if (!IsCreditCardNumberValid(number))
+            {
+                return "Unknown";
+            }
+
             switch (GetVendor(CleanString(number)))
             {
                 case Vendor.AmericanExpress: return "American Express";
@@ -48,7 +53,8 @@ namespace CardValidator
 
         public static bool IsCreditCardNumberValid(string number)
         {
-            return number.Length>0 && GetLuhnSumOfDigits(CleanString(number)) % 10 == 0;
+            return GetVendor(number) != Vendor.Unknown &&
+                GetLuhnSumOfDigits(CleanString(number)) % 10 == 0;
         }
 
         public static string GenerateNextCreditCardNumber(string number)
@@ -59,7 +65,7 @@ namespace CardValidator
             int num = (luhnSum % 10 == 0) ? 0 : 10 - luhnSum % 10;
             incNumber[incNumber.Length - 1] = Convert.ToChar('0' + num);
 
-            if(GetCreditCardVendor(incNumber.ToString()) != Vendor.Unknown.ToString())
+            if (GetVendor(incNumber.ToString()) == Vendor.Unknown)
             {
                 return "";
             }
@@ -69,10 +75,14 @@ namespace CardValidator
 
         private static Vendor GetVendor(string number)
         {
-            int numberConverted = Convert.ToInt32(number.Substring(0, 4));
             int numberLength = number.Length;
 
-            if (!IsCreditCardNumberValid(number)) return Vendor.Unknown;
+            if (numberLength < 4)
+            {
+                return Vendor.Unknown;
+            }
+
+            int numberConverted = Convert.ToInt32(number.Substring(0, 4));
 
             if ((numberConverted >= VisaNumberLow && numberConverted <= VisaNumberHigh) &&
                 (numberLength == 13 || numberLength == 16 || numberLength == 19))
@@ -163,7 +173,7 @@ namespace CardValidator
             return value.Replace(" ", "");
         }
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             string clinedNumber = "";
             string cardNumber;
