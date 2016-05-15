@@ -169,5 +169,6 @@ namespace CardValidator
         {
             return GetLuhnSum(number) % 10 == 0;
         }
+
     }
 }
