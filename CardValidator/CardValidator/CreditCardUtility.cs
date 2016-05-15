@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CardValidator
 {
@@ -48,18 +49,19 @@ namespace CardValidator
 
         public static bool IsCreditCardNumberValid(string number)
         {
-            return number.Length>0 && GetLuhnSumOfDigits(CleanString(number)) % 10 == 0;
+            string cleanedNumber = CleanString(number);
+            return GetVendor(cleanedNumber) != Vendor.Unknown && IsLuhnSumValid(cleanedNumber);
         }
 
         public static string GenerateNextCreditCardNumber(string number)
         {
-            StringBuilder incNumber = new StringBuilder(IncrementNumber(CleanString(number)));
+            StringBuilder incNumber = new StringBuilder(GetNextLuhnNumber(CleanString(number)));
             incNumber[incNumber.Length - 1] = '0';
-            int luhnSum = GetLuhnSumOfDigits(incNumber.ToString());
+            int luhnSum = GetLuhnSum(incNumber.ToString());
             int num = (luhnSum % 10 == 0) ? 0 : 10 - luhnSum % 10;
             incNumber[incNumber.Length - 1] = Convert.ToChar('0' + num);
 
-            if(GetCreditCardVendor(incNumber.ToString()) != Vendor.Unknown.ToString())
+            if (GetCreditCardVendor(incNumber.ToString()) == Vendor.Unknown.ToString())
             {
                 return "";
             }
@@ -72,7 +74,7 @@ namespace CardValidator
             int numberConverted = Convert.ToInt32(number.Substring(0, 4));
             int numberLength = number.Length;
 
-            if (!IsCreditCardNumberValid(number)) return Vendor.Unknown;
+            if (!IsLuhnSumValid(number)) return Vendor.Unknown;
 
             if ((numberConverted >= VisaNumberLow && numberConverted <= VisaNumberHigh) &&
                 (numberLength == 13 || numberLength == 16 || numberLength == 19))
@@ -110,7 +112,7 @@ namespace CardValidator
             return Vendor.Unknown;
         }
 
-        private static string IncrementNumber(string number)
+        private static string GetNextLuhnNumber(string number)
         {
             var array = number.Select(v => Convert.ToInt32(v) - '0').ToArray();
             int sum = array[array.Length - 2] + 1;
@@ -131,7 +133,7 @@ namespace CardValidator
             return (sum >= 10 && i == 0) ? "1" + incrementedNumber : incrementedNumber;
         }
 
-        private static int GetLuhnSumOfDigits(string number)
+        private static int GetLuhnSum(string number)
         {
             return number.Reverse().
                 Select((v, i) => new { value = Convert.ToInt32(v) - '0', index = i }).
@@ -160,39 +162,12 @@ namespace CardValidator
 
         private static string CleanString(string value)
         {
-            return value.Replace(" ", "");
+            return Regex.Replace(value, @"[^\d]", String.Empty);
         }
 
-        static void Main(string[] args)
+        private static bool IsLuhnSumValid(string number)
         {
-            string clinedNumber = "";
-            string cardNumber;
-
-            while (clinedNumber.Length < 12)
-            {
-                Console.WriteLine("Enter card number:");
-                cardNumber = Console.ReadLine();
-                clinedNumber = cardNumber.Replace(" ", "");
-
-                if (!clinedNumber.All(char.IsDigit))
-                {
-                    Console.WriteLine("Card number contain wrong symbols.\nPlease enter card number:");
-                    clinedNumber = "";
-                }
-            }
-
-            Console.WriteLine(GetCreditCardVendor(clinedNumber));
-
-            string isNumberValid = IsCreditCardNumberValid(clinedNumber) ? "valid" : "not valid";
-            Console.WriteLine("Card number is " + isNumberValid);
-
-            string nextNumber = GenerateNextCreditCardNumber(clinedNumber);
-            Console.WriteLine("Next card number is " + nextNumber);
-
-            isNumberValid = IsCreditCardNumberValid(nextNumber) ? "valid" : "not valid";
-            Console.WriteLine("Next card number is " + isNumberValid);
-
-            Console.ReadLine();
+            return GetLuhnSum(number) % 10 == 0;
         }
     }
 }
